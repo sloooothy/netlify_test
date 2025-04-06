@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>使用者心得表單</title>
+</head>
+<body>
+  <div id="app">
+    <contact-form></contact-form>
+  </div>
+
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script type="module">
+    import ContactForm from './ContactForm.vue';
+
+    const { createApp } = Vue;
+    createApp({ components: { ContactForm } }).mount('#app');
+  </script>
+</body>
+</html>
