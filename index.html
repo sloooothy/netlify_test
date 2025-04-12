@@ -1,64 +1,142 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-  <meta charset="UTF-8">
-  <title>塔羅預言機</title>
-  <style>
-    body {
-      font-family: "Noto Sans TC", sans-serif;
-      background: #0f0f1a;
-      color: #f0f0f0;
-      text-align: center;
-      padding: 2rem;
-    }
-    button {
-      padding: 1rem 2rem;
-      font-size: 1.2rem;
-      background-color: #8f00ff;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #aa33ff;
-    }
-    #result {
-      margin-top: 2rem;
-      white-space: pre-wrap;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>🌌 塔羅星語 🔮</title>
+    <style>
+        body {
+            font-family: "Noto Sans TC", sans-serif;
+            background: url('./img/background_fortuneteller.jpg') no-repeat center center fixed;
+            background-size: cover;
+            color: #f0f0f0;
+            text-align: center;
+            padding: 2rem;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7); /* 增加一層半透明的黑色疊加 */
+            z-index: -1;
+        }
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        }
+        p {
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+        }
+        button {
+            padding: 1.2rem 2.5rem;
+            font-size: 1.3rem;
+            background-color: #6a00b3; /* 更神秘的紫色 */
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #9400d3;
+        }
+        #result-container {
+            margin-top: 3rem;
+            background-color: rgba(255, 255, 255, 0.1); /* 半透明背景 */
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        #result {
+            white-space: pre-wrap;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+        }
+        .loading {
+            font-style: italic;
+            color: #ccc;
+        }
+    </style>
 </head>
 <body>
-  <h1>🃏 今日塔羅預言 🧠</h1>
-  <p>點擊按鈕，連接 LLM 與塔羅智慧預測你的命運。</p>
-  <button onclick="getTarotReading()">抽一張牌</button>
-  <div id="result"></div>
+    <div id="app">
+        <div class="overlay"></div>
+        <h1>🌌 {{ title }} 🔮</h1>
+        <p>{{ description }}</p>
+        <button @click="getTarotReading" :disabled="isLoading">
+            {{ isLoading ? '正在解讀星象...' : '抽取我的塔羅牌' }}
+        </button>
+        <div id="result-container" v-if="result">
+            <h2>🔮 預言結果 🌠</h2>
+            <p id="result">{{ result }}</p>
+        </div>
+        <div id="result-container" v-else-if="error">
+            <h2>⚠️ 錯誤訊息 ⚠️</h2>
+            <p class="error">{{ error }}</p>
+        </div>
+        <div id="result-container" v-else-if="isLoading">
+            <p class="loading">正在解析宇宙的命運……✨</p>
+        </div>
+    </div>
 
-  <script>
-    async function getTarotReading() {
-      const resultEl = document.getElementById('result');
-      resultEl.innerText = '正在解析宇宙的命運……🔮';
+    <script src="https://cdn.jsdelivr.net/npm/vue@3"></script>
+    <script>
+        const { createApp, ref } = Vue;
 
-      try {
-        const response = await fetch('/.netlify/functions/tarot', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            question: '請為我抽一張牌，並解釋它的意義'
-          }),
-        });
+        createApp({
+            data() {
+                return {
+                    title: '塔羅星語',
+                    description: '點擊按鈕，與宇宙能量共鳴，探索塔羅的智慧預言。',
+                    isLoading: false,
+                    result: null,
+                    error: null
+                };
+            },
+            methods: {
+                async getTarotReading() {
+                    this.isLoading = true;
+                    this.result = null;
+                    this.error = null;
 
-        if (!response.ok) throw new Error('錯誤的回應');
+                    try {
+                        const response = await fetch('/.netlify/functions/tarot', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                question: '請為我抽一張牌，並解釋它的意義'
+                            }),
+                        });
 
-        const data = await response.json();
-        resultEl.innerText = data.message || '無回應內容';
-      } catch (err) {
-        resultEl.innerText = '發生錯誤：' + err.message;
-      }
-    }
-  </script>
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            throw new Error(errorData.message || '與宇宙的連接發生錯誤');
+                        }
+
+                        const data = await response.json();
+                        this.result = data.message || '宇宙沒有回應...';
+                    } catch (err) {
+                        this.error = err.message;
+                    } finally {
+                        this.isLoading = false;
+                    }
+                }
+            }
+        }).mount('#app');
+    </script>
 </body>
 </html>
