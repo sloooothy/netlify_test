@@ -1,77 +1,64 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
-  <meta charset="UTF-8" />
-  <title>使用者心得表單</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <title>塔羅預言機</title>
   <style>
-    form {
-      max-width: 400px;
-      margin: 0 auto;
+    body {
+      font-family: "Noto Sans TC", sans-serif;
+      background: #0f0f1a;
+      color: #f0f0f0;
+      text-align: center;
+      padding: 2rem;
     }
-    textarea {
-      width: 100%;
-      height: 100px;
+    button {
+      padding: 1rem 2rem;
+      font-size: 1.2rem;
+      background-color: #8f00ff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #aa33ff;
+    }
+    #result {
+      margin-top: 2rem;
+      white-space: pre-wrap;
     }
   </style>
 </head>
 <body>
-  <div id="app">
-    <form
-      name="feedback"
-      method="POST"
-      data-netlify="true"
-      @submit.prevent="handleSubmit"
-    >
-      <input type="hidden" name="form-name" value="feedback" />
+  <h1>🃏 今日塔羅預言 🧠</h1>
+  <p>點擊按鈕，連接 LLM 與塔羅智慧預測你的命運。</p>
+  <button onclick="getTarotReading()">抽一張牌</button>
+  <div id="result"></div>
 
-      <p>
-        <label>您的名字：
-          <input type="text" name="name" v-model="formData.name" required />
-        </label>
-      </p>
-
-      <p>
-        <label>您的心得：
-          <textarea name="message" v-model="formData.message" required></textarea>
-        </label>
-      </p>
-
-      <p>
-        <button type="submit">送出</button>
-      </p>
-
-      <p v-if="submitted">已送出，感謝您的回饋！</p>
-    </form>
-  </div>
-
-  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
   <script>
-    const { createApp, ref } = Vue;
+    async function getTarotReading() {
+      const resultEl = document.getElementById('result');
+      resultEl.innerText = '正在解析宇宙的命運……🔮';
 
-    createApp({
-      setup() {
-        const formData = ref({
-          name: '',
-          message: ''
+      try {
+        const response = await fetch('/.netlify/functions/tarot', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            question: '請為我抽一張牌，並解釋它的意義'
+          }),
         });
-        const submitted = ref(false);
 
-        const handleSubmit = () => {
-          submitted.value = true;
+        if (!response.ok) throw new Error('錯誤的回應');
 
-          // 提交表單資料
-          const formElement = document.querySelector('form');
-          const form = new FormData(formElement);
-          fetch('/', {
-            method: 'POST',
-            body: form,
-          });
-        };
-
-        return { formData, submitted, handleSubmit };
+        const data = await response.json();
+        resultEl.innerText = data.message || '無回應內容';
+      } catch (err) {
+        resultEl.innerText = '發生錯誤：' + err.message;
       }
-    }).mount('#app');
+    }
   </script>
 </body>
 </html>
